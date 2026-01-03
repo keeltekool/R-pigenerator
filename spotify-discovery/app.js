@@ -187,6 +187,14 @@ function handleSearch() {
 // ============================================
 
 function getSpotifyUrl(genre) {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+    if (isIOS) {
+        // iOS: Use Spotify URI scheme to open directly in app
+        return `spotify://search/${encodeURIComponent(genre)}`;
+    }
+
+    // Desktop/Android: Keep original working format
     return `https://open.spotify.com/search/${encodeURIComponent(genre)}/playlists`;
 }
 
