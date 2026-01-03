@@ -1,5 +1,6 @@
 // ============================================
-// MUSIC DISCOVERY - Last.fm API
+// PLAYLIST FINDER - Last.fm API
+// Find playlists featuring artists you like
 // ============================================
 
 const API_KEY = '9ed41078f8f32b59097f8ccc3eccd9a3';
@@ -20,10 +21,14 @@ const elements = {
     artistName: document.getElementById('artist-name'),
     artistListeners: document.getElementById('artist-listeners'),
     artistTags: document.getElementById('artist-tags'),
+    playlistsSection: document.getElementById('playlists-section'),
+    playlistArtistName: document.getElementById('playlist-artist-name'),
+    spotifyPlaylistLink: document.getElementById('spotify-playlist-link'),
+    youtubePlaylistLink: document.getElementById('youtube-playlist-link'),
     similarSection: document.getElementById('similar-section'),
     similarArtists: document.getElementById('similar-artists'),
-    tracksSection: document.getElementById('tracks-section'),
-    tracksList: document.getElementById('tracks-list'),
+    genreSection: document.getElementById('genre-section'),
+    genrePlaylists: document.getElementById('genre-playlists'),
     errorSection: document.getElementById('error-section'),
     errorMessage: document.getElementById('error-message'),
     retryBtn: document.getElementById('retry-btn'),
@@ -94,13 +99,34 @@ async function getArtistInfo(artist) {
 }
 
 async function getSimilarArtists(artist) {
-    const data = await apiCall('artist.getsimilar', { artist, limit: 12, autocorrect: 1 });
+    const data = await apiCall('artist.getsimilar', { artist, limit: 8, autocorrect: 1 });
     return data.similarartists?.artist || [];
 }
 
-async function getArtistTopTracks(artist) {
-    const data = await apiCall('artist.gettoptracks', { artist, limit: 5, autocorrect: 1 });
-    return data.toptracks?.track || [];
+// ============================================
+// Playlist URL Generators
+// ============================================
+
+function getSpotifyPlaylistSearchUrl(artistName) {
+    // Search for playlists containing this artist on Spotify
+    const query = encodeURIComponent(`${artistName} playlist`);
+    return `https://open.spotify.com/search/${query}/playlists`;
+}
+
+function getYouTubePlaylistSearchUrl(artistName) {
+    // Search for playlists containing this artist on YouTube Music
+    const query = encodeURIComponent(`${artistName} playlist`);
+    return `https://www.youtube.com/results?search_query=${query}&sp=EgIQAw%253D%253D`;
+}
+
+function getSpotifyGenrePlaylistUrl(genre) {
+    const query = encodeURIComponent(`${genre} playlist`);
+    return `https://open.spotify.com/search/${query}/playlists`;
+}
+
+function getYouTubeGenrePlaylistUrl(genre) {
+    const query = encodeURIComponent(`${genre} playlist`);
+    return `https://www.youtube.com/results?search_query=${query}&sp=EgIQAw%253D%253D`;
 }
 
 // ============================================
@@ -170,17 +196,18 @@ async function handleSearch() {
         const artistInfo = await getArtistInfo(query);
         displayArtist(artistInfo);
 
+        // Display main playlist links
+        displayPlaylistLinks(artistInfo.name);
+
         showLoading('Finding similar artists...');
 
         // Get similar artists
         const similar = await getSimilarArtists(query);
         displaySimilarArtists(similar);
 
-        showLoading('Getting top tracks...');
-
-        // Get top tracks from similar artists
-        const tracks = await getTopTracksFromSimilar(similar.slice(0, 6));
-        displayTracks(tracks);
+        // Display genre-based playlists
+        const tags = artistInfo.tags?.tag || [];
+        displayGenrePlaylists(tags);
 
         hideLoading();
 
@@ -188,26 +215,6 @@ async function handleSearch() {
         console.error('Error:', error);
         showError(error.message || 'Artist not found. Please try another name.');
     }
-}
-
-async function getTopTracksFromSimilar(artists) {
-    const allTracks = [];
-
-    for (const artist of artists) {
-        try {
-            const tracks = await getArtistTopTracks(artist.name);
-            // Add artist info to each track
-            tracks.forEach(track => {
-                track.artistInfo = artist;
-            });
-            allTracks.push(...tracks.slice(0, 3));
-        } catch (error) {
-            console.error(`Error getting tracks for ${artist.name}:`, error);
-        }
-    }
-
-    // Shuffle and return
-    return shuffleArray(allTracks).slice(0, 15);
 }
 
 // ============================================
@@ -231,64 +238,61 @@ function displayArtist(artist) {
     elements.artistSection.classList.remove('hidden');
 }
 
+function displayPlaylistLinks(artistName) {
+    elements.playlistArtistName.textContent = artistName;
+    elements.spotifyPlaylistLink.href = getSpotifyPlaylistSearchUrl(artistName);
+    elements.youtubePlaylistLink.href = getYouTubePlaylistSearchUrl(artistName);
+    elements.playlistsSection.classList.remove('hidden');
+}
+
 function displaySimilarArtists(artists) {
     if (!artists.length) {
         elements.similarSection.classList.add('hidden');
         return;
     }
 
-    elements.similarArtists.innerHTML = artists.map(artist => `
-        <div class="similar-artist" data-name="${escapeHtml(artist.name)}">
-            <img src="${getLargeImage(artist.image)}" alt="${escapeHtml(artist.name)}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%231f1f1f%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%235a5a5a%22 font-size=%2240%22>?</text></svg>'">
-            <div class="name">${escapeHtml(artist.name)}</div>
-            <div class="match">${Math.round(parseFloat(artist.match) * 100)}% match</div>
-        </div>
-    `).join('');
-
-    elements.similarSection.classList.remove('hidden');
-
-    // Add click handlers to explore similar artists
-    elements.similarArtists.querySelectorAll('.similar-artist').forEach(item => {
-        item.addEventListener('click', () => {
-            elements.artistInput.value = item.dataset.name;
-            handleSearch();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-    });
-}
-
-function displayTracks(tracks) {
-    if (!tracks.length) {
-        elements.tracksSection.classList.add('hidden');
-        return;
-    }
-
-    elements.tracksList.innerHTML = tracks.map(track => {
-        const trackImage = getLargeImage(track.image) || getLargeImage(track.artistInfo?.image);
-        const spotifySearch = encodeURIComponent(`${track.name} ${track.artist.name}`);
-        const youtubeSearch = encodeURIComponent(`${track.name} ${track.artist.name}`);
+    elements.similarArtists.innerHTML = artists.map(artist => {
+        const spotifyUrl = getSpotifyPlaylistSearchUrl(artist.name);
+        const youtubeUrl = getYouTubePlaylistSearchUrl(artist.name);
 
         return `
-            <div class="track-item">
-                <img class="track-image" src="${trackImage}" alt="${escapeHtml(track.name)}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%231f1f1f%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%235a5a5a%22 font-size=%2230%22>♪</text></svg>'">
-                <div class="track-info">
-                    <div class="track-name">${escapeHtml(track.name)}</div>
-                    <div class="track-artist">${escapeHtml(track.artist.name)}</div>
-                </div>
-                <span class="playcount">${formatNumber(track.playcount)} plays</span>
-                <div class="track-actions">
-                    <a class="track-link spotify" href="https://open.spotify.com/search/${spotifySearch}" target="_blank">
-                        Spotify
-                    </a>
-                    <a class="track-link youtube" href="https://music.youtube.com/search?q=${youtubeSearch}" target="_blank">
-                        YouTube
-                    </a>
+            <div class="similar-artist">
+                <img src="${getLargeImage(artist.image)}" alt="${escapeHtml(artist.name)}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%231f1f1f%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%235a5a5a%22 font-size=%2240%22>?</text></svg>'">
+                <div class="name">${escapeHtml(artist.name)}</div>
+                <div class="match">${Math.round(parseFloat(artist.match) * 100)}% match</div>
+                <div class="artist-links">
+                    <a class="spotify-link" href="${spotifyUrl}" target="_blank">Spotify</a>
+                    <a class="youtube-link" href="${youtubeUrl}" target="_blank">YouTube</a>
                 </div>
             </div>
         `;
     }).join('');
 
-    elements.tracksSection.classList.remove('hidden');
+    elements.similarSection.classList.remove('hidden');
+}
+
+function displayGenrePlaylists(tags) {
+    if (!tags.length) {
+        elements.genreSection.classList.add('hidden');
+        return;
+    }
+
+    elements.genrePlaylists.innerHTML = tags.slice(0, 6).map(tag => {
+        const spotifyUrl = getSpotifyGenrePlaylistUrl(tag.name);
+        const youtubeUrl = getYouTubeGenrePlaylistUrl(tag.name);
+
+        return `
+            <div class="genre-playlist-item">
+                <div class="genre-name">${escapeHtml(tag.name)}</div>
+                <div class="genre-links">
+                    <a class="spotify-link" href="${spotifyUrl}" target="_blank">Spotify</a>
+                    <a class="youtube-link" href="${youtubeUrl}" target="_blank">YouTube</a>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    elements.genreSection.classList.remove('hidden');
 }
 
 // ============================================
@@ -324,15 +328,6 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-function shuffleArray(array) {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-}
-
 // ============================================
 // UI Helpers
 // ============================================
@@ -341,8 +336,9 @@ function showLoading(text) {
     elements.loadingText.textContent = text;
     elements.loadingSection.classList.remove('hidden');
     elements.artistSection.classList.add('hidden');
+    elements.playlistsSection.classList.add('hidden');
     elements.similarSection.classList.add('hidden');
-    elements.tracksSection.classList.add('hidden');
+    elements.genreSection.classList.add('hidden');
     elements.errorSection.classList.add('hidden');
 }
 
@@ -355,15 +351,17 @@ function showError(message) {
     elements.errorMessage.textContent = message;
     elements.errorSection.classList.remove('hidden');
     elements.artistSection.classList.add('hidden');
+    elements.playlistsSection.classList.add('hidden');
     elements.similarSection.classList.add('hidden');
-    elements.tracksSection.classList.add('hidden');
+    elements.genreSection.classList.add('hidden');
 }
 
 function resetUI() {
     elements.errorSection.classList.add('hidden');
     elements.artistSection.classList.add('hidden');
+    elements.playlistsSection.classList.add('hidden');
     elements.similarSection.classList.add('hidden');
-    elements.tracksSection.classList.add('hidden');
+    elements.genreSection.classList.add('hidden');
     elements.artistInput.value = '';
     elements.artistInput.focus();
 }
