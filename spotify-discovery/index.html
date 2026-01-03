@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Discovery - Find Similar Artists</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Music Discovery</h1>
+            <p class="subtitle">Find new artists based on your favorites</p>
+        </header>
+
+        <!-- Step 1: Input -->
+        <section id="input-section" class="card">
+            <label for="artist-input">Enter an artist you like:</label>
+            <div class="input-group">
+                <input
+                    type="text"
+                    id="artist-input"
+                    placeholder="e.g. Radiohead, Kendrick Lamar, Daft Punk..."
+                    autocomplete="off"
+                >
+                <button id="search-btn" class="btn btn-primary">Discover</button>
+            </div>
+            <p class="hint">We'll find similar artists and their top tracks</p>
+
+            <!-- Suggestions dropdown -->
+            <div id="suggestions" class="suggestions hidden"></div>
+        </section>
+
+        <!-- Loading State -->
+        <section id="loading-section" class="card hidden">
+            <div class="loader"></div>
+            <p id="loading-text">Finding similar artists...</p>
+        </section>
+
+        <!-- Step 2: Artist Info -->
+        <section id="artist-section" class="card hidden">
+            <div class="artist-header">
+                <img id="artist-image" src="" alt="Artist">
+                <div class="artist-info">
+                    <h2 id="artist-name">Artist Name</h2>
+                    <p id="artist-listeners">0 listeners</p>
+                    <div id="artist-tags" class="tags"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 3: Similar Artists -->
+        <section id="similar-section" class="card hidden">
+            <h2>Similar Artists You Might Like</h2>
+            <div id="similar-artists" class="similar-grid">
+                <!-- Similar artists will be inserted here -->
+            </div>
+        </section>
+
+        <!-- Step 4: Top Tracks -->
+        <section id="tracks-section" class="card hidden">
+            <h2>Top Tracks to Explore</h2>
+            <p class="rec-subtitle">From similar artists</p>
+            <div id="tracks-list" class="track-list">
+                <!-- Tracks will be inserted here -->
+            </div>
+        </section>
+
+        <!-- Error State -->
+        <section id="error-section" class="card error hidden">
+            <h2>Oops!</h2>
+            <p id="error-message">Something went wrong.</p>
+            <button id="retry-btn" class="btn btn-outline">Try Again</button>
+        </section>
+
+        <footer>
+            <p>Powered by <a href="https://www.last.fm/api" target="_blank">Last.fm API</a> |
+            Listen on <a href="https://open.spotify.com" target="_blank">Spotify</a> or <a href="https://music.youtube.com" target="_blank">YouTube Music</a></p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
