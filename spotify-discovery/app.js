@@ -188,9 +188,19 @@ function handleSearch() {
 
 function getSpotifyUrl(genre) {
     // Universal format that works on all platforms
-    // On iOS, this opens in Spotify app if "Open in App" is enabled
     return `https://open.spotify.com/search/${encodeURIComponent(genre)}`;
 }
+
+// iOS fix: Handle link clicks with timestamp to prevent caching issues
+document.addEventListener('click', (e) => {
+    const link = e.target.closest('.genre-tag');
+    if (link && link.href.includes('open.spotify.com')) {
+        e.preventDefault();
+        // Add timestamp to force fresh request on iOS
+        const url = link.href + '?t=' + Date.now();
+        window.open(url, '_blank');
+    }
+});
 
 function escapeHtml(text) {
     if (!text) return '';
