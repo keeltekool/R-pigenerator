@@ -3,56 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Genre Browser - Find Spotify Playlists by Genre</title>
-    <link rel="stylesheet" href="style.css?v=2">
+    <title>Genre Browser - Discover 6,291 Music Genres</title>
+    <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
     <div class="container">
         <header>
             <h1>Genre Browser</h1>
-            <p class="subtitle">6,291 music genres → Click any to find playlists on Spotify</p>
+            <p class="subtitle">24 main genres, 6,291 subgenres - Click to find playlists on Spotify</p>
         </header>
 
-        <!-- Search & Filter -->
+        <!-- Search -->
         <section id="search-section" class="card">
             <div class="search-container">
                 <input
                     type="text"
                     id="search-input"
-                    placeholder="Search genres... (e.g. jazz, metal, electronic)"
+                    placeholder="Search all genres... (e.g. death metal, lo-fi, bossa nova)"
                     autocomplete="off"
                 >
-                <span id="match-count" class="match-count">6,291 genres</span>
-            </div>
-            <div class="alphabet-filter" id="alphabet-filter">
-                <button class="letter-btn active" data-letter="all">All</button>
-                <button class="letter-btn" data-letter="a">A</button>
-                <button class="letter-btn" data-letter="b">B</button>
-                <button class="letter-btn" data-letter="c">C</button>
-                <button class="letter-btn" data-letter="d">D</button>
-                <button class="letter-btn" data-letter="e">E</button>
-                <button class="letter-btn" data-letter="f">F</button>
-                <button class="letter-btn" data-letter="g">G</button>
-                <button class="letter-btn" data-letter="h">H</button>
-                <button class="letter-btn" data-letter="i">I</button>
-                <button class="letter-btn" data-letter="j">J</button>
-                <button class="letter-btn" data-letter="k">K</button>
-                <button class="letter-btn" data-letter="l">L</button>
-                <button class="letter-btn" data-letter="m">M</button>
-                <button class="letter-btn" data-letter="n">N</button>
-                <button class="letter-btn" data-letter="o">O</button>
-                <button class="letter-btn" data-letter="p">P</button>
-                <button class="letter-btn" data-letter="q">Q</button>
-                <button class="letter-btn" data-letter="r">R</button>
-                <button class="letter-btn" data-letter="s">S</button>
-                <button class="letter-btn" data-letter="t">T</button>
-                <button class="letter-btn" data-letter="u">U</button>
-                <button class="letter-btn" data-letter="v">V</button>
-                <button class="letter-btn" data-letter="w">W</button>
-                <button class="letter-btn" data-letter="x">X</button>
-                <button class="letter-btn" data-letter="y">Y</button>
-                <button class="letter-btn" data-letter="z">Z</button>
-                <button class="letter-btn" data-letter="#">#</button>
+                <span id="match-count" class="match-count"></span>
             </div>
         </section>
 
@@ -62,20 +32,34 @@
             <p>Loading genres...</p>
         </section>
 
-        <!-- Genres Grid -->
-        <section id="genres-section" class="hidden">
-            <div id="genres-grid" class="genres-grid">
-                <!-- Genres will be inserted here -->
-            </div>
-            <div id="load-more-container" class="load-more-container hidden">
-                <button id="load-more-btn" class="btn btn-outline">Load More</button>
+        <!-- Main Genres (Initial View) -->
+        <section id="main-genres-section" class="hidden">
+            <div id="main-genres-grid" class="main-genres-grid">
+                <!-- Main genre cards will be inserted here -->
             </div>
         </section>
 
-        <!-- No Results -->
-        <section id="no-results" class="card hidden">
-            <h2>No genres found</h2>
-            <p>Try a different search term or letter filter.</p>
+        <!-- Search Results -->
+        <section id="search-results-section" class="hidden">
+            <div class="results-header">
+                <h2>Search Results</h2>
+                <button id="clear-search" class="btn btn-small">Clear Search</button>
+            </div>
+            <div id="search-results-grid" class="genres-grid">
+                <!-- Search results will be inserted here -->
+            </div>
+        </section>
+
+        <!-- Expanded Subgenres View -->
+        <section id="subgenres-section" class="hidden">
+            <div class="subgenres-header">
+                <button id="back-btn" class="btn btn-back">&larr; Back to Main Genres</button>
+                <h2 id="subgenres-title">Subgenres</h2>
+                <span id="subgenres-count" class="subgenres-count"></span>
+            </div>
+            <div id="subgenres-grid" class="genres-grid">
+                <!-- Subgenres will be inserted here -->
+            </div>
         </section>
 
         <footer>
@@ -83,6 +67,6 @@
         </footer>
     </div>
 
-    <script src="app.js?v=2"></script>
+    <script src="app.js?v=3"></script>
 </body>
 </html>

@@ -31,7 +31,7 @@ body {
 
 /* Layout */
 .container {
-    max-width: 1400px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 2rem 1rem;
 }
@@ -68,13 +68,12 @@ header h1 {
 /* Search Container */
 .search-container {
     position: relative;
-    margin-bottom: 1rem;
 }
 
 #search-input {
     width: 100%;
     padding: 1rem 1.25rem;
-    padding-right: 120px;
+    padding-right: 100px;
     font-size: 1.1rem;
     background: var(--bg-dark);
     border: 2px solid var(--bg-card-hover);
@@ -97,45 +96,9 @@ header h1 {
     right: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--text-muted);
-    font-size: 0.875rem;
-    pointer-events: none;
-}
-
-/* Alphabet Filter */
-.alphabet-filter {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-    justify-content: center;
-}
-
-.letter-btn {
-    width: 36px;
-    height: 36px;
-    border: none;
-    border-radius: 6px;
-    background: var(--bg-genre);
-    color: var(--text-secondary);
+    color: var(--spotify-green);
     font-size: 0.875rem;
     font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.letter-btn:hover {
-    background: var(--bg-genre-hover);
-    color: var(--text-primary);
-}
-
-.letter-btn.active {
-    background: var(--spotify-green);
-    color: var(--bg-dark);
-}
-
-.letter-btn[data-letter="all"] {
-    width: auto;
-    padding: 0 12px;
 }
 
 /* Buttons */
@@ -144,8 +107,8 @@ header h1 {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.875rem 1.5rem;
-    font-size: 1rem;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.95rem;
     font-weight: 600;
     border: none;
     border-radius: 50px;
@@ -154,25 +117,25 @@ header h1 {
     text-decoration: none;
 }
 
-.btn-primary {
-    background: var(--spotify-green);
-    color: var(--bg-dark);
-}
-
-.btn-primary:hover {
-    background: var(--spotify-green-dark);
-    transform: scale(1.02);
-}
-
-.btn-outline {
-    background: transparent;
-    border: 2px solid var(--text-secondary);
+.btn-back {
+    background: var(--bg-genre);
     color: var(--text-primary);
 }
 
-.btn-outline:hover {
-    border-color: var(--spotify-green);
-    color: var(--spotify-green);
+.btn-back:hover {
+    background: var(--bg-genre-hover);
+}
+
+.btn-small {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    background: var(--bg-genre);
+    color: var(--text-secondary);
+}
+
+.btn-small:hover {
+    background: var(--bg-genre-hover);
+    color: var(--text-primary);
 }
 
 /* Loading */
@@ -195,14 +158,121 @@ header h1 {
     padding: 3rem 1.5rem;
 }
 
-/* Genres Grid */
+/* ================================
+   MAIN GENRES GRID - Big Cards
+   ================================ */
+.main-genres-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+.main-genre-card {
+    background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card-hover) 100%);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.main-genre-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--spotify-green);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.main-genre-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--spotify-green);
+    box-shadow: 0 8px 30px rgba(29, 185, 84, 0.2);
+}
+
+.main-genre-card:hover::before {
+    transform: scaleX(1);
+}
+
+.main-genre-name {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.main-genre-count {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.main-genre-arrow {
+    position: absolute;
+    right: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+}
+
+.main-genre-card:hover .main-genre-arrow {
+    color: var(--spotify-green);
+    transform: translateY(-50%) translateX(4px);
+}
+
+/* ================================
+   SUBGENRES VIEW
+   ================================ */
+.subgenres-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.subgenres-header h2 {
+    font-size: 1.75rem;
+    color: var(--spotify-green);
+    flex: 1;
+}
+
+.subgenres-count {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+/* ================================
+   SEARCH RESULTS
+   ================================ */
+.results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.results-header h2 {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+}
+
+/* ================================
+   SUBGENRE TAGS (clickable pills)
+   ================================ */
 .genres-grid {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
 }
 
-/* Genre Tag */
 .genre-tag {
     display: inline-flex;
     align-items: center;
@@ -214,7 +284,6 @@ header h1 {
     text-decoration: none;
     transition: all 0.2s ease;
     cursor: pointer;
-    border: 1px solid transparent;
 }
 
 .genre-tag:hover {
@@ -224,38 +293,30 @@ header h1 {
     box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
 }
 
-.genre-tag::after {
-    content: "→";
+/* Search result highlight */
+.genre-tag mark {
+    background: transparent;
+    color: var(--spotify-green);
+    font-weight: 700;
+}
+
+.genre-tag:hover mark {
+    color: var(--bg-dark);
+}
+
+/* Parent genre badge in search results */
+.genre-tag .parent-badge {
     margin-left: 0.5rem;
-    opacity: 0;
-    transform: translateX(-5px);
-    transition: all 0.2s ease;
-}
-
-.genre-tag:hover::after {
-    opacity: 1;
-    transform: translateX(0);
-}
-
-/* Load More */
-.load-more-container {
-    display: flex;
-    justify-content: center;
-    padding: 2rem 0;
-}
-
-/* No Results */
-#no-results {
-    text-align: center;
-}
-
-#no-results h2 {
-    color: var(--text-secondary);
-    margin-bottom: 0.5rem;
-}
-
-#no-results p {
+    padding: 0.15rem 0.5rem;
+    background: rgba(255,255,255,0.1);
+    border-radius: 20px;
+    font-size: 0.7rem;
     color: var(--text-muted);
+}
+
+.genre-tag:hover .parent-badge {
+    background: rgba(0,0,0,0.2);
+    color: var(--bg-dark);
 }
 
 /* Footer */
@@ -281,40 +342,28 @@ footer {
         font-size: 1.75rem;
     }
 
-    .letter-btn {
-        width: 32px;
-        height: 32px;
-        font-size: 0.75rem;
+    .main-genres-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+
+    .main-genre-name {
+        font-size: 1.2rem;
+    }
+
+    .subgenres-header {
+        flex-direction: column;
+        align-items: flex-start;
     }
 
     .genre-tag {
         padding: 0.5rem 0.875rem;
         font-size: 0.85rem;
     }
-
-    #search-input {
-        padding-right: 100px;
-        font-size: 1rem;
-    }
-
-    .match-count {
-        font-size: 0.75rem;
-    }
 }
 
 @media (max-width: 480px) {
-    .alphabet-filter {
-        gap: 0.25rem;
-    }
-
-    .letter-btn {
-        width: 28px;
-        height: 28px;
-        font-size: 0.7rem;
-    }
-
-    .letter-btn[data-letter="all"] {
-        padding: 0 8px;
+    .main-genres-grid {
+        grid-template-columns: 1fr;
     }
 }
 
