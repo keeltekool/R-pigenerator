@@ -3,32 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Playlist Finder - Discover Playlists by Artist</title>
+    <title>Playlist Discovery - Find Curated Playlists</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Playlist Finder</h1>
-            <p class="subtitle">Find playlists featuring your favorite artists</p>
+            <h1>Playlist Discovery</h1>
+            <p class="subtitle">Find curated playlists by genre, mood, or artist</p>
         </header>
 
-        <!-- Step 1: Input -->
+        <!-- Search Input -->
         <section id="input-section" class="card">
-            <label for="artist-input">Enter an artist you like:</label>
+            <label for="search-input">What are you in the mood for?</label>
             <div class="input-group">
                 <input
                     type="text"
-                    id="artist-input"
-                    placeholder="e.g. Radiohead, Kendrick Lamar, Daft Punk..."
+                    id="search-input"
+                    placeholder="e.g. chill, workout, jazz, 90s hip hop, study..."
                     autocomplete="off"
                 >
                 <button id="search-btn" class="btn btn-primary">Find Playlists</button>
             </div>
-            <p class="hint">We'll find playlists featuring this artist and similar ones</p>
-
-            <!-- Suggestions dropdown -->
-            <div id="suggestions" class="suggestions hidden"></div>
+            <div class="quick-tags">
+                <span class="quick-tag" data-query="chill">chill</span>
+                <span class="quick-tag" data-query="workout">workout</span>
+                <span class="quick-tag" data-query="party">party</span>
+                <span class="quick-tag" data-query="focus">focus</span>
+                <span class="quick-tag" data-query="sleep">sleep</span>
+                <span class="quick-tag" data-query="jazz">jazz</span>
+                <span class="quick-tag" data-query="hip hop">hip hop</span>
+                <span class="quick-tag" data-query="rock">rock</span>
+            </div>
         </section>
 
         <!-- Loading State -->
@@ -37,60 +43,26 @@
             <p id="loading-text">Finding playlists...</p>
         </section>
 
-        <!-- Step 2: Artist Info -->
-        <section id="artist-section" class="card hidden">
-            <div class="artist-header">
-                <img id="artist-image" src="" alt="Artist">
-                <div class="artist-info">
-                    <h2 id="artist-name">Artist Name</h2>
-                    <p id="artist-listeners">0 listeners</p>
-                    <div id="artist-tags" class="tags"></div>
-                </div>
+        <!-- Results -->
+        <section id="results-section" class="hidden">
+            <div class="results-header">
+                <h2>Playlists for "<span id="search-query"></span>"</h2>
+                <p id="results-count">0 playlists found</p>
             </div>
-        </section>
-
-        <!-- Step 3: Playlist Links for Main Artist -->
-        <section id="playlists-section" class="card hidden">
-            <h2>Playlists featuring <span id="playlist-artist-name"></span></h2>
-            <div class="playlist-links">
-                <a id="spotify-playlist-link" class="btn btn-spotify" href="" target="_blank">
-                    <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
-                    Open Spotify Playlists
-                </a>
-                <a id="youtube-playlist-link" class="btn btn-youtube" href="" target="_blank">
-                    <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                    Open YouTube Music Playlists
-                </a>
-            </div>
-        </section>
-
-        <!-- Step 4: Similar Artists with Playlist Links -->
-        <section id="similar-section" class="card hidden">
-            <h2>Explore Similar Artists</h2>
-            <p class="rec-subtitle">Click any artist to find playlists featuring them</p>
-            <div id="similar-artists" class="similar-grid">
-                <!-- Similar artists will be inserted here -->
-            </div>
-        </section>
-
-        <!-- Step 5: Genre-based Playlists -->
-        <section id="genre-section" class="card hidden">
-            <h2>Playlists by Genre</h2>
-            <p class="rec-subtitle">Based on this artist's tags</p>
-            <div id="genre-playlists" class="genre-playlist-grid">
-                <!-- Genre playlist links will be inserted here -->
+            <div id="playlists-grid" class="playlists-grid">
+                <!-- Playlists will be inserted here -->
             </div>
         </section>
 
         <!-- Error State -->
         <section id="error-section" class="card error hidden">
-            <h2>Oops!</h2>
-            <p id="error-message">Something went wrong.</p>
+            <h2>No playlists found</h2>
+            <p id="error-message">Try a different search term.</p>
             <button id="retry-btn" class="btn btn-outline">Try Again</button>
         </section>
 
         <footer>
-            <p>Powered by <a href="https://www.last.fm/api" target="_blank">Last.fm API</a></p>
+            <p>Powered by <a href="https://developers.deezer.com/" target="_blank">Deezer API</a></p>
         </footer>
     </div>
 

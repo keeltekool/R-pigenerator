@@ -1,34 +1,27 @@
 // ============================================
-// PLAYLIST FINDER - Last.fm API
-// Find playlists featuring artists you like
+// PLAYLIST DISCOVERY - Deezer API
+// Find real curated playlists
 // ============================================
 
-const API_KEY = '9ed41078f8f32b59097f8ccc3eccd9a3';
-const API_BASE = 'https://ws.audioscrobbler.com/2.0/';
+// Deezer API - NO API KEY NEEDED!
+const DEEZER_API = 'https://api.deezer.com';
+// CORS proxy for browser requests
+const CORS_PROXY = 'https://corsproxy.io/?';
 
 // ============================================
 // DOM Elements
 // ============================================
 
 const elements = {
-    artistInput: document.getElementById('artist-input'),
+    searchInput: document.getElementById('search-input'),
     searchBtn: document.getElementById('search-btn'),
-    suggestions: document.getElementById('suggestions'),
+    quickTags: document.querySelectorAll('.quick-tag'),
     loadingSection: document.getElementById('loading-section'),
     loadingText: document.getElementById('loading-text'),
-    artistSection: document.getElementById('artist-section'),
-    artistImage: document.getElementById('artist-image'),
-    artistName: document.getElementById('artist-name'),
-    artistListeners: document.getElementById('artist-listeners'),
-    artistTags: document.getElementById('artist-tags'),
-    playlistsSection: document.getElementById('playlists-section'),
-    playlistArtistName: document.getElementById('playlist-artist-name'),
-    spotifyPlaylistLink: document.getElementById('spotify-playlist-link'),
-    youtubePlaylistLink: document.getElementById('youtube-playlist-link'),
-    similarSection: document.getElementById('similar-section'),
-    similarArtists: document.getElementById('similar-artists'),
-    genreSection: document.getElementById('genre-section'),
-    genrePlaylists: document.getElementById('genre-playlists'),
+    resultsSection: document.getElementById('results-section'),
+    searchQuery: document.getElementById('search-query'),
+    resultsCount: document.getElementById('results-count'),
+    playlistsGrid: document.getElementById('playlists-grid'),
     errorSection: document.getElementById('error-section'),
     errorMessage: document.getElementById('error-message'),
     retryBtn: document.getElementById('retry-btn'),
@@ -36,148 +29,39 @@ const elements = {
 };
 
 // ============================================
-// State
-// ============================================
-
-let searchTimeout = null;
-
-// ============================================
 // Initialize
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
     elements.searchBtn.addEventListener('click', handleSearch);
-    elements.artistInput.addEventListener('keypress', (e) => {
+    elements.searchInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') handleSearch();
     });
-    elements.artistInput.addEventListener('input', handleInputChange);
     elements.retryBtn.addEventListener('click', resetUI);
 
-    // Close suggestions when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('#input-section')) {
-            elements.suggestions.classList.add('hidden');
-        }
+    // Quick tag clicks
+    elements.quickTags.forEach(tag => {
+        tag.addEventListener('click', () => {
+            elements.searchInput.value = tag.dataset.query;
+            handleSearch();
+        });
     });
 });
 
 // ============================================
-// API Calls
+// API Call
 // ============================================
 
-async function apiCall(method, params = {}) {
-    const url = new URL(API_BASE);
-    url.searchParams.append('method', method);
-    url.searchParams.append('api_key', API_KEY);
-    url.searchParams.append('format', 'json');
-
-    for (const [key, value] of Object.entries(params)) {
-        url.searchParams.append(key, value);
-    }
+async function searchPlaylists(query) {
+    const url = `${CORS_PROXY}${encodeURIComponent(`${DEEZER_API}/search/playlist?q=${encodeURIComponent(query)}&limit=25`)}`;
 
     const response = await fetch(url);
     if (!response.ok) {
-        throw new Error('API request failed');
+        throw new Error('Failed to fetch playlists');
     }
 
     const data = await response.json();
-    if (data.error) {
-        throw new Error(data.message || 'API error');
-    }
-
-    return data;
-}
-
-async function searchArtists(query) {
-    const data = await apiCall('artist.search', { artist: query, limit: 5 });
-    return data.results?.artistmatches?.artist || [];
-}
-
-async function getArtistInfo(artist) {
-    const data = await apiCall('artist.getinfo', { artist, autocorrect: 1 });
-    return data.artist;
-}
-
-async function getSimilarArtists(artist) {
-    const data = await apiCall('artist.getsimilar', { artist, limit: 8, autocorrect: 1 });
-    return data.similarartists?.artist || [];
-}
-
-// ============================================
-// Playlist URL Generators
-// ============================================
-
-function getSpotifyPlaylistSearchUrl(artistName) {
-    // Search for playlists containing this artist on Spotify
-    const query = encodeURIComponent(`${artistName} playlist`);
-    return `https://open.spotify.com/search/${query}/playlists`;
-}
-
-function getYouTubePlaylistSearchUrl(artistName) {
-    // Search for playlists containing this artist on YouTube Music
-    const query = encodeURIComponent(`${artistName} playlist`);
-    return `https://www.youtube.com/results?search_query=${query}&sp=EgIQAw%253D%253D`;
-}
-
-function getSpotifyGenrePlaylistUrl(genre) {
-    const query = encodeURIComponent(`${genre} playlist`);
-    return `https://open.spotify.com/search/${query}/playlists`;
-}
-
-function getYouTubeGenrePlaylistUrl(genre) {
-    const query = encodeURIComponent(`${genre} playlist`);
-    return `https://www.youtube.com/results?search_query=${query}&sp=EgIQAw%253D%253D`;
-}
-
-// ============================================
-// Search & Autocomplete
-// ============================================
-
-function handleInputChange() {
-    clearTimeout(searchTimeout);
-    const query = elements.artistInput.value.trim();
-
-    if (query.length < 2) {
-        elements.suggestions.classList.add('hidden');
-        return;
-    }
-
-    searchTimeout = setTimeout(async () => {
-        try {
-            const artists = await searchArtists(query);
-            displaySuggestions(artists);
-        } catch (error) {
-            console.error('Search error:', error);
-        }
-    }, 300);
-}
-
-function displaySuggestions(artists) {
-    if (!artists.length) {
-        elements.suggestions.classList.add('hidden');
-        return;
-    }
-
-    elements.suggestions.innerHTML = artists.map(artist => `
-        <div class="suggestion-item" data-name="${escapeHtml(artist.name)}">
-            <img src="${getArtistImage(artist)}" alt="${escapeHtml(artist.name)}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%231f1f1f%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%235a5a5a%22 font-size=%2240%22>?</text></svg>'">
-            <div>
-                <div class="name">${escapeHtml(artist.name)}</div>
-                <div class="listeners">${formatNumber(artist.listeners)} listeners</div>
-            </div>
-        </div>
-    `).join('');
-
-    elements.suggestions.classList.remove('hidden');
-
-    // Add click handlers
-    elements.suggestions.querySelectorAll('.suggestion-item').forEach(item => {
-        item.addEventListener('click', () => {
-            elements.artistInput.value = item.dataset.name;
-            elements.suggestions.classList.add('hidden');
-            handleSearch();
-        });
-    });
+    return data.data || [];
 }
 
 // ============================================
@@ -185,141 +69,82 @@ function displaySuggestions(artists) {
 // ============================================
 
 async function handleSearch() {
-    const query = elements.artistInput.value.trim();
+    const query = elements.searchInput.value.trim();
     if (!query) return;
 
-    elements.suggestions.classList.add('hidden');
-    showLoading('Finding artist info...');
+    showLoading();
 
     try {
-        // Get artist info
-        const artistInfo = await getArtistInfo(query);
-        displayArtist(artistInfo);
+        const playlists = await searchPlaylists(query);
 
-        // Display main playlist links
-        displayPlaylistLinks(artistInfo.name);
+        if (playlists.length === 0) {
+            showError('No playlists found. Try a different search term.');
+            return;
+        }
 
-        showLoading('Finding similar artists...');
-
-        // Get similar artists
-        const similar = await getSimilarArtists(query);
-        displaySimilarArtists(similar);
-
-        // Display genre-based playlists
-        const tags = artistInfo.tags?.tag || [];
-        displayGenrePlaylists(tags);
-
-        hideLoading();
+        displayPlaylists(query, playlists);
 
     } catch (error) {
         console.error('Error:', error);
-        showError(error.message || 'Artist not found. Please try another name.');
+        showError('Failed to search playlists. Please try again.');
     }
 }
 
 // ============================================
-// Display Functions
+// Display Playlists
 // ============================================
 
-function displayArtist(artist) {
-    elements.artistImage.src = getLargeImage(artist.image);
-    elements.artistImage.onerror = () => {
-        elements.artistImage.src = 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%231f1f1f%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%235a5a5a%22 font-size=%2240%22>?</text></svg>';
-    };
-    elements.artistName.textContent = artist.name;
-    elements.artistListeners.textContent = `${formatNumber(artist.stats?.listeners || 0)} listeners`;
+function displayPlaylists(query, playlists) {
+    elements.searchQuery.textContent = query;
+    elements.resultsCount.textContent = `${playlists.length} playlists found`;
 
-    // Tags
-    const tags = artist.tags?.tag || [];
-    elements.artistTags.innerHTML = tags.slice(0, 5).map(tag =>
-        `<span class="tag">${escapeHtml(tag.name)}</span>`
-    ).join('');
-
-    elements.artistSection.classList.remove('hidden');
-}
-
-function displayPlaylistLinks(artistName) {
-    elements.playlistArtistName.textContent = artistName;
-    elements.spotifyPlaylistLink.href = getSpotifyPlaylistSearchUrl(artistName);
-    elements.youtubePlaylistLink.href = getYouTubePlaylistSearchUrl(artistName);
-    elements.playlistsSection.classList.remove('hidden');
-}
-
-function displaySimilarArtists(artists) {
-    if (!artists.length) {
-        elements.similarSection.classList.add('hidden');
-        return;
-    }
-
-    elements.similarArtists.innerHTML = artists.map(artist => {
-        const spotifyUrl = getSpotifyPlaylistSearchUrl(artist.name);
-        const youtubeUrl = getYouTubePlaylistSearchUrl(artist.name);
+    elements.playlistsGrid.innerHTML = playlists.map(playlist => {
+        const spotifySearch = encodeURIComponent(playlist.title);
+        const youtubeSearch = encodeURIComponent(playlist.title + ' playlist');
 
         return `
-            <div class="similar-artist">
-                <img src="${getLargeImage(artist.image)}" alt="${escapeHtml(artist.name)}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%231f1f1f%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%235a5a5a%22 font-size=%2240%22>?</text></svg>'">
-                <div class="name">${escapeHtml(artist.name)}</div>
-                <div class="match">${Math.round(parseFloat(artist.match) * 100)}% match</div>
-                <div class="artist-links">
-                    <a class="spotify-link" href="${spotifyUrl}" target="_blank">Spotify</a>
-                    <a class="youtube-link" href="${youtubeUrl}" target="_blank">YouTube</a>
+            <div class="playlist-card">
+                <div class="playlist-cover">
+                    <img src="${playlist.picture_big || playlist.picture_medium || playlist.picture}"
+                         alt="${escapeHtml(playlist.title)}"
+                         onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%231a1a1a%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23666%22 font-size=%2230%22>♪</text></svg>'">
+                    <div class="playlist-overlay">
+                        <a class="play-on-deezer" href="${playlist.link}" target="_blank">
+                            Play on Deezer
+                        </a>
+                    </div>
+                </div>
+                <div class="playlist-info">
+                    <div class="playlist-title" title="${escapeHtml(playlist.title)}">${escapeHtml(playlist.title)}</div>
+                    <div class="playlist-meta">
+                        <span class="playlist-tracks">${playlist.nb_tracks} tracks</span>
+                        <span class="playlist-creator">by ${escapeHtml(playlist.user?.name || 'Deezer')}</span>
+                    </div>
+                    <div class="platform-links">
+                        <a class="platform-link spotify"
+                           href="https://open.spotify.com/search/${spotifySearch}/playlists"
+                           target="_blank">
+                            Find on Spotify
+                        </a>
+                        <a class="platform-link youtube"
+                           href="https://www.youtube.com/results?search_query=${youtubeSearch}&sp=EgIQAw%253D%253D"
+                           target="_blank">
+                            Find on YouTube
+                        </a>
+                    </div>
                 </div>
             </div>
         `;
     }).join('');
 
-    elements.similarSection.classList.remove('hidden');
-}
-
-function displayGenrePlaylists(tags) {
-    if (!tags.length) {
-        elements.genreSection.classList.add('hidden');
-        return;
-    }
-
-    elements.genrePlaylists.innerHTML = tags.slice(0, 6).map(tag => {
-        const spotifyUrl = getSpotifyGenrePlaylistUrl(tag.name);
-        const youtubeUrl = getYouTubeGenrePlaylistUrl(tag.name);
-
-        return `
-            <div class="genre-playlist-item">
-                <div class="genre-name">${escapeHtml(tag.name)}</div>
-                <div class="genre-links">
-                    <a class="spotify-link" href="${spotifyUrl}" target="_blank">Spotify</a>
-                    <a class="youtube-link" href="${youtubeUrl}" target="_blank">YouTube</a>
-                </div>
-            </div>
-        `;
-    }).join('');
-
-    elements.genreSection.classList.remove('hidden');
+    hideLoading();
+    elements.resultsSection.classList.remove('hidden');
+    elements.errorSection.classList.add('hidden');
 }
 
 // ============================================
 // Helpers
 // ============================================
-
-function getArtistImage(artist) {
-    if (!artist.image) return '';
-    const img = artist.image.find(i => i.size === 'medium') || artist.image[0];
-    return img?.['#text'] || '';
-}
-
-function getLargeImage(images) {
-    if (!images) return '';
-    const img = images.find(i => i.size === 'extralarge') ||
-                images.find(i => i.size === 'large') ||
-                images.find(i => i.size === 'medium') ||
-                images[0];
-    return img?.['#text'] || '';
-}
-
-function formatNumber(num) {
-    const n = parseInt(num) || 0;
-    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
-    if (n >= 1000) return (n / 1000).toFixed(0) + 'K';
-    return n.toString();
-}
 
 function escapeHtml(text) {
     if (!text) return '';
@@ -332,13 +157,9 @@ function escapeHtml(text) {
 // UI Helpers
 // ============================================
 
-function showLoading(text) {
-    elements.loadingText.textContent = text;
+function showLoading() {
     elements.loadingSection.classList.remove('hidden');
-    elements.artistSection.classList.add('hidden');
-    elements.playlistsSection.classList.add('hidden');
-    elements.similarSection.classList.add('hidden');
-    elements.genreSection.classList.add('hidden');
+    elements.resultsSection.classList.add('hidden');
     elements.errorSection.classList.add('hidden');
 }
 
@@ -350,18 +171,12 @@ function showError(message) {
     hideLoading();
     elements.errorMessage.textContent = message;
     elements.errorSection.classList.remove('hidden');
-    elements.artistSection.classList.add('hidden');
-    elements.playlistsSection.classList.add('hidden');
-    elements.similarSection.classList.add('hidden');
-    elements.genreSection.classList.add('hidden');
+    elements.resultsSection.classList.add('hidden');
 }
 
 function resetUI() {
     elements.errorSection.classList.add('hidden');
-    elements.artistSection.classList.add('hidden');
-    elements.playlistsSection.classList.add('hidden');
-    elements.similarSection.classList.add('hidden');
-    elements.genreSection.classList.add('hidden');
-    elements.artistInput.value = '';
-    elements.artistInput.focus();
+    elements.resultsSection.classList.add('hidden');
+    elements.searchInput.value = '';
+    elements.searchInput.focus();
 }
