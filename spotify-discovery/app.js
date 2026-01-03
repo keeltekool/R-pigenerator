@@ -1,182 +1,172 @@
 // ============================================
-// PLAYLIST DISCOVERY - Deezer API
-// Find real curated playlists
+// GENRE BROWSER - Find Spotify Playlists
+// 6,291 genres from genres.json
 // ============================================
 
-// Deezer API - NO API KEY NEEDED!
-const DEEZER_API = 'https://api.deezer.com';
-// CORS proxy for browser requests
-const CORS_PROXY = 'https://corsproxy.io/?';
+// State
+let allGenres = [];
+let filteredGenres = [];
+let displayedCount = 0;
+const BATCH_SIZE = 200; // Load 200 genres at a time
 
-// ============================================
 // DOM Elements
-// ============================================
-
 const elements = {
     searchInput: document.getElementById('search-input'),
-    searchBtn: document.getElementById('search-btn'),
-    quickTags: document.querySelectorAll('.quick-tag'),
+    matchCount: document.getElementById('match-count'),
+    alphabetFilter: document.getElementById('alphabet-filter'),
     loadingSection: document.getElementById('loading-section'),
-    loadingText: document.getElementById('loading-text'),
-    resultsSection: document.getElementById('results-section'),
-    searchQuery: document.getElementById('search-query'),
-    resultsCount: document.getElementById('results-count'),
-    playlistsGrid: document.getElementById('playlists-grid'),
-    errorSection: document.getElementById('error-section'),
-    errorMessage: document.getElementById('error-message'),
-    retryBtn: document.getElementById('retry-btn'),
-    inputSection: document.getElementById('input-section')
+    genresSection: document.getElementById('genres-section'),
+    genresGrid: document.getElementById('genres-grid'),
+    loadMoreContainer: document.getElementById('load-more-container'),
+    loadMoreBtn: document.getElementById('load-more-btn'),
+    noResults: document.getElementById('no-results')
 };
+
+// Current filters
+let currentSearch = '';
+let currentLetter = 'all';
 
 // ============================================
 // Initialize
 // ============================================
 
-document.addEventListener('DOMContentLoaded', () => {
-    elements.searchBtn.addEventListener('click', handleSearch);
-    elements.searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleSearch();
-    });
-    elements.retryBtn.addEventListener('click', resetUI);
+document.addEventListener('DOMContentLoaded', async () => {
+    // Load genres
+    try {
+        const response = await fetch('genres.json');
+        allGenres = await response.json();
+        filteredGenres = [...allGenres];
 
-    // Quick tag clicks
-    elements.quickTags.forEach(tag => {
-        tag.addEventListener('click', () => {
-            elements.searchInput.value = tag.dataset.query;
-            handleSearch();
-        });
+        elements.loadingSection.classList.add('hidden');
+        elements.genresSection.classList.remove('hidden');
+
+        renderGenres();
+        updateMatchCount();
+    } catch (error) {
+        console.error('Error loading genres:', error);
+        elements.loadingSection.innerHTML = '<p>Error loading genres. Please refresh.</p>';
+    }
+
+    // Search input with debounce
+    let searchTimeout;
+    elements.searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            currentSearch = elements.searchInput.value.toLowerCase().trim();
+            applyFilters();
+        }, 150);
+    });
+
+    // Alphabet filter
+    elements.alphabetFilter.addEventListener('click', (e) => {
+        if (e.target.classList.contains('letter-btn')) {
+            // Update active state
+            document.querySelectorAll('.letter-btn').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+
+            currentLetter = e.target.dataset.letter;
+            applyFilters();
+        }
+    });
+
+    // Load more button
+    elements.loadMoreBtn.addEventListener('click', () => {
+        renderMoreGenres();
     });
 });
 
 // ============================================
-// API Call
+// Filtering
 // ============================================
 
-async function searchPlaylists(query) {
-    const url = `${CORS_PROXY}${encodeURIComponent(`${DEEZER_API}/search/playlist?q=${encodeURIComponent(query)}&limit=25`)}`;
-
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error('Failed to fetch playlists');
-    }
-
-    const data = await response.json();
-    return data.data || [];
-}
-
-// ============================================
-// Main Search
-// ============================================
-
-async function handleSearch() {
-    const query = elements.searchInput.value.trim();
-    if (!query) return;
-
-    showLoading();
-
-    try {
-        const playlists = await searchPlaylists(query);
-
-        if (playlists.length === 0) {
-            showError('No playlists found. Try a different search term.');
-            return;
+function applyFilters() {
+    filteredGenres = allGenres.filter(genre => {
+        // Search filter
+        if (currentSearch && !genre.toLowerCase().includes(currentSearch)) {
+            return false;
         }
 
-        displayPlaylists(query, playlists);
+        // Letter filter
+        if (currentLetter !== 'all') {
+            const firstChar = genre.charAt(0).toLowerCase();
+            if (currentLetter === '#') {
+                // Non-letter characters (numbers, symbols)
+                if (/[a-z]/i.test(firstChar)) return false;
+            } else {
+                if (firstChar !== currentLetter) return false;
+            }
+        }
 
-    } catch (error) {
-        console.error('Error:', error);
-        showError('Failed to search playlists. Please try again.');
+        return true;
+    });
+
+    displayedCount = 0;
+    elements.genresGrid.innerHTML = '';
+    renderGenres();
+    updateMatchCount();
+}
+
+// ============================================
+// Rendering
+// ============================================
+
+function renderGenres() {
+    if (filteredGenres.length === 0) {
+        elements.genresSection.classList.add('hidden');
+        elements.noResults.classList.remove('hidden');
+        return;
+    }
+
+    elements.noResults.classList.add('hidden');
+    elements.genresSection.classList.remove('hidden');
+
+    renderMoreGenres();
+}
+
+function renderMoreGenres() {
+    const endIndex = Math.min(displayedCount + BATCH_SIZE, filteredGenres.length);
+    const genresToRender = filteredGenres.slice(displayedCount, endIndex);
+
+    const fragment = document.createDocumentFragment();
+
+    genresToRender.forEach(genre => {
+        const tag = document.createElement('a');
+        tag.className = 'genre-tag';
+        tag.textContent = genre;
+        tag.href = getSpotifySearchUrl(genre);
+        tag.target = '_blank';
+        tag.rel = 'noopener noreferrer';
+        fragment.appendChild(tag);
+    });
+
+    elements.genresGrid.appendChild(fragment);
+    displayedCount = endIndex;
+
+    // Show/hide load more button
+    if (displayedCount < filteredGenres.length) {
+        elements.loadMoreContainer.classList.remove('hidden');
+        elements.loadMoreBtn.textContent = `Load More (${filteredGenres.length - displayedCount} remaining)`;
+    } else {
+        elements.loadMoreContainer.classList.add('hidden');
+    }
+}
+
+function updateMatchCount() {
+    const count = filteredGenres.length;
+    const total = allGenres.length;
+
+    if (currentSearch || currentLetter !== 'all') {
+        elements.matchCount.textContent = `${count.toLocaleString()} of ${total.toLocaleString()}`;
+    } else {
+        elements.matchCount.textContent = `${total.toLocaleString()} genres`;
     }
 }
 
 // ============================================
-// Display Playlists
+// Spotify URL
 // ============================================
 
-function displayPlaylists(query, playlists) {
-    elements.searchQuery.textContent = query;
-    elements.resultsCount.textContent = `${playlists.length} playlists found`;
-
-    elements.playlistsGrid.innerHTML = playlists.map(playlist => {
-        const spotifySearch = encodeURIComponent(playlist.title);
-        const youtubeSearch = encodeURIComponent(playlist.title + ' playlist');
-
-        return `
-            <div class="playlist-card">
-                <div class="playlist-cover">
-                    <img src="${playlist.picture_big || playlist.picture_medium || playlist.picture}"
-                         alt="${escapeHtml(playlist.title)}"
-                         onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%231a1a1a%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23666%22 font-size=%2230%22>♪</text></svg>'">
-                    <div class="playlist-overlay">
-                        <a class="play-on-deezer" href="${playlist.link}" target="_blank">
-                            Play on Deezer
-                        </a>
-                    </div>
-                </div>
-                <div class="playlist-info">
-                    <div class="playlist-title" title="${escapeHtml(playlist.title)}">${escapeHtml(playlist.title)}</div>
-                    <div class="playlist-meta">
-                        <span class="playlist-tracks">${playlist.nb_tracks} tracks</span>
-                        <span class="playlist-creator">by ${escapeHtml(playlist.user?.name || 'Deezer')}</span>
-                    </div>
-                    <div class="platform-links">
-                        <a class="platform-link spotify"
-                           href="https://open.spotify.com/search/${spotifySearch}/playlists"
-                           target="_blank">
-                            Find on Spotify
-                        </a>
-                        <a class="platform-link youtube"
-                           href="https://www.youtube.com/results?search_query=${youtubeSearch}&sp=EgIQAw%253D%253D"
-                           target="_blank">
-                            Find on YouTube
-                        </a>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-
-    hideLoading();
-    elements.resultsSection.classList.remove('hidden');
-    elements.errorSection.classList.add('hidden');
-}
-
-// ============================================
-// Helpers
-// ============================================
-
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// ============================================
-// UI Helpers
-// ============================================
-
-function showLoading() {
-    elements.loadingSection.classList.remove('hidden');
-    elements.resultsSection.classList.add('hidden');
-    elements.errorSection.classList.add('hidden');
-}
-
-function hideLoading() {
-    elements.loadingSection.classList.add('hidden');
-}
-
-function showError(message) {
-    hideLoading();
-    elements.errorMessage.textContent = message;
-    elements.errorSection.classList.remove('hidden');
-    elements.resultsSection.classList.add('hidden');
-}
-
-function resetUI() {
-    elements.errorSection.classList.add('hidden');
-    elements.resultsSection.classList.add('hidden');
-    elements.searchInput.value = '';
-    elements.searchInput.focus();
+function getSpotifySearchUrl(genre) {
+    const query = encodeURIComponent(genre);
+    return `https://open.spotify.com/search/${query}/playlists`;
 }

@@ -3,66 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Playlist Discovery - Find Curated Playlists</title>
+    <title>Genre Browser - Find Spotify Playlists by Genre</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Playlist Discovery</h1>
-            <p class="subtitle">Find curated playlists by genre, mood, or artist</p>
+            <h1>Genre Browser</h1>
+            <p class="subtitle">6,291 music genres → Click any to find playlists on Spotify</p>
         </header>
 
-        <!-- Search Input -->
-        <section id="input-section" class="card">
-            <label for="search-input">What are you in the mood for?</label>
-            <div class="input-group">
+        <!-- Search & Filter -->
+        <section id="search-section" class="card">
+            <div class="search-container">
                 <input
                     type="text"
                     id="search-input"
-                    placeholder="e.g. chill, workout, jazz, 90s hip hop, study..."
+                    placeholder="Search genres... (e.g. jazz, metal, electronic)"
                     autocomplete="off"
                 >
-                <button id="search-btn" class="btn btn-primary">Find Playlists</button>
+                <span id="match-count" class="match-count">6,291 genres</span>
             </div>
-            <div class="quick-tags">
-                <span class="quick-tag" data-query="chill">chill</span>
-                <span class="quick-tag" data-query="workout">workout</span>
-                <span class="quick-tag" data-query="party">party</span>
-                <span class="quick-tag" data-query="focus">focus</span>
-                <span class="quick-tag" data-query="sleep">sleep</span>
-                <span class="quick-tag" data-query="jazz">jazz</span>
-                <span class="quick-tag" data-query="hip hop">hip hop</span>
-                <span class="quick-tag" data-query="rock">rock</span>
+            <div class="alphabet-filter" id="alphabet-filter">
+                <button class="letter-btn active" data-letter="all">All</button>
+                <button class="letter-btn" data-letter="a">A</button>
+                <button class="letter-btn" data-letter="b">B</button>
+                <button class="letter-btn" data-letter="c">C</button>
+                <button class="letter-btn" data-letter="d">D</button>
+                <button class="letter-btn" data-letter="e">E</button>
+                <button class="letter-btn" data-letter="f">F</button>
+                <button class="letter-btn" data-letter="g">G</button>
+                <button class="letter-btn" data-letter="h">H</button>
+                <button class="letter-btn" data-letter="i">I</button>
+                <button class="letter-btn" data-letter="j">J</button>
+                <button class="letter-btn" data-letter="k">K</button>
+                <button class="letter-btn" data-letter="l">L</button>
+                <button class="letter-btn" data-letter="m">M</button>
+                <button class="letter-btn" data-letter="n">N</button>
+                <button class="letter-btn" data-letter="o">O</button>
+                <button class="letter-btn" data-letter="p">P</button>
+                <button class="letter-btn" data-letter="q">Q</button>
+                <button class="letter-btn" data-letter="r">R</button>
+                <button class="letter-btn" data-letter="s">S</button>
+                <button class="letter-btn" data-letter="t">T</button>
+                <button class="letter-btn" data-letter="u">U</button>
+                <button class="letter-btn" data-letter="v">V</button>
+                <button class="letter-btn" data-letter="w">W</button>
+                <button class="letter-btn" data-letter="x">X</button>
+                <button class="letter-btn" data-letter="y">Y</button>
+                <button class="letter-btn" data-letter="z">Z</button>
+                <button class="letter-btn" data-letter="#">#</button>
             </div>
         </section>
 
-        <!-- Loading State -->
-        <section id="loading-section" class="card hidden">
+        <!-- Loading -->
+        <section id="loading-section" class="card">
             <div class="loader"></div>
-            <p id="loading-text">Finding playlists...</p>
+            <p>Loading genres...</p>
         </section>
 
-        <!-- Results -->
-        <section id="results-section" class="hidden">
-            <div class="results-header">
-                <h2>Playlists for "<span id="search-query"></span>"</h2>
-                <p id="results-count">0 playlists found</p>
+        <!-- Genres Grid -->
+        <section id="genres-section" class="hidden">
+            <div id="genres-grid" class="genres-grid">
+                <!-- Genres will be inserted here -->
             </div>
-            <div id="playlists-grid" class="playlists-grid">
-                <!-- Playlists will be inserted here -->
+            <div id="load-more-container" class="load-more-container hidden">
+                <button id="load-more-btn" class="btn btn-outline">Load More</button>
             </div>
         </section>
 
-        <!-- Error State -->
-        <section id="error-section" class="card error hidden">
-            <h2>No playlists found</h2>
-            <p id="error-message">Try a different search term.</p>
-            <button id="retry-btn" class="btn btn-outline">Try Again</button>
+        <!-- No Results -->
+        <section id="no-results" class="card hidden">
+            <h2>No genres found</h2>
+            <p>Try a different search term or letter filter.</p>
         </section>
 
         <footer>
-            <p>Powered by <a href="https://developers.deezer.com/" target="_blank">Deezer API</a></p>
+            <p>Click any genre to search for playlists on Spotify</p>
         </footer>
     </div>
 
