@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artist Browser - Discover 5,819 Artists by Genre</title>
+    <link rel="stylesheet" href="style.css?v=5">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Artist Browser</h1>
+            <p class="subtitle">34 genres, 5,819 artists - Click to find playlists on Spotify</p>
+        </header>
+
+        <!-- Search -->
+        <section id="search-section" class="card">
+            <div class="search-container">
+                <input
+                    type="text"
+                    id="search-input"
+                    placeholder="Search all artists... (e.g. Daft Punk, Caribou, Fred again)"
+                    autocomplete="off"
+                >
+                <span id="match-count" class="match-count"></span>
+            </div>
+        </section>
+
+        <!-- Loading -->
+        <section id="loading-section" class="card">
+            <div class="loader"></div>
+            <p>Loading artists...</p>
+        </section>
+
+        <!-- Main Genres (Initial View) -->
+        <section id="main-genres-section" class="hidden">
+            <div id="main-genres-grid" class="main-genres-grid">
+                <!-- Genre cards will be inserted here -->
+            </div>
+        </section>
+
+        <!-- Search Results -->
+        <section id="search-results-section" class="hidden">
+            <div class="results-header">
+                <h2>Search Results</h2>
+                <button id="clear-search" class="btn btn-small">Clear Search</button>
+            </div>
+            <div id="search-results-grid" class="artists-grid">
+                <!-- Search results will be inserted here -->
+            </div>
+        </section>
+
+        <!-- Artists View (When Genre Clicked) -->
+        <section id="artists-section" class="hidden">
+            <div class="artists-header">
+                <button id="back-btn" class="btn btn-back">&larr; Back to Genres</button>
+                <h2 id="artists-title">Artists</h2>
+                <span id="artists-count" class="artists-count"></span>
+            </div>
+            <div id="artists-grid" class="artists-grid">
+                <!-- Artists will be inserted here -->
+            </div>
+        </section>
+
+        <footer>
+            <p>Click any artist to search for playlists on Spotify</p>
+        </footer>
+    </div>
+
+    <script src="app.js?v=5"></script>
+</body>
+</html>

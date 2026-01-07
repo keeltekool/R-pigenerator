@@ -1,0 +1,386 @@
+/* CSS Variables */
+:root {
+    --spotify-green: #1DB954;
+    --spotify-green-dark: #1aa34a;
+    --bg-dark: #121212;
+    --bg-card: #1e1e1e;
+    --bg-card-hover: #282828;
+    --bg-genre: #2a2a2a;
+    --bg-genre-hover: #3a3a3a;
+    --text-primary: #ffffff;
+    --text-secondary: #b3b3b3;
+    --text-muted: #666666;
+    --border-radius: 12px;
+    --border-radius-sm: 8px;
+}
+
+/* Reset & Base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+/* Layout */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+/* Header */
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--spotify-green), #1ed760);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+/* Cards */
+.card {
+    background: var(--bg-card);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Search Container */
+.search-container {
+    position: relative;
+}
+
+#search-input {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    padding-right: 100px;
+    font-size: 1.1rem;
+    background: var(--bg-dark);
+    border: 2px solid var(--bg-card-hover);
+    border-radius: var(--border-radius);
+    color: var(--text-primary);
+    transition: border-color 0.2s ease;
+}
+
+#search-input:focus {
+    outline: none;
+    border-color: var(--spotify-green);
+}
+
+#search-input::placeholder {
+    color: var(--text-muted);
+}
+
+.match-count {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--spotify-green);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-back {
+    background: var(--bg-genre);
+    color: var(--text-primary);
+}
+
+.btn-back:hover {
+    background: var(--bg-genre-hover);
+}
+
+.btn-small {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    background: var(--bg-genre);
+    color: var(--text-secondary);
+}
+
+.btn-small:hover {
+    background: var(--bg-genre-hover);
+    color: var(--text-primary);
+}
+
+/* Loading */
+.loader {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--bg-card-hover);
+    border-top-color: var(--spotify-green);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+#loading-section {
+    text-align: center;
+    padding: 3rem 1.5rem;
+}
+
+/* ================================
+   MAIN GENRES GRID - Big Cards
+   ================================ */
+.main-genres-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+.main-genre-card {
+    background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card-hover) 100%);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.main-genre-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--spotify-green);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.main-genre-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--spotify-green);
+    box-shadow: 0 8px 30px rgba(29, 185, 84, 0.2);
+}
+
+.main-genre-card:hover::before {
+    transform: scaleX(1);
+}
+
+.main-genre-name {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.main-genre-count {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.main-genre-arrow {
+    position: absolute;
+    right: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+}
+
+.main-genre-card:hover .main-genre-arrow {
+    color: var(--spotify-green);
+    transform: translateY(-50%) translateX(4px);
+}
+
+/* ================================
+   ARTISTS VIEW
+   ================================ */
+.artists-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.artists-header h2 {
+    font-size: 1.75rem;
+    color: var(--spotify-green);
+    flex: 1;
+}
+
+.artists-count {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+/* ================================
+   SEARCH RESULTS
+   ================================ */
+.results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.results-header h2 {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+}
+
+/* ================================
+   ARTIST TAGS (clickable pills)
+   ================================ */
+.artists-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.artist-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.6rem 1rem;
+    background: var(--bg-genre);
+    border-radius: 50px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.artist-tag:hover {
+    background: var(--spotify-green);
+    color: var(--bg-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
+}
+
+/* Search result highlight */
+.artist-tag mark {
+    background: transparent;
+    color: var(--spotify-green);
+    font-weight: 700;
+}
+
+.artist-tag:hover mark {
+    color: var(--bg-dark);
+}
+
+/* Genre badge in search results */
+.artist-tag .genre-badge {
+    margin-left: 0.5rem;
+    padding: 0.15rem 0.5rem;
+    background: rgba(255,255,255,0.1);
+    border-radius: 20px;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.artist-tag:hover .genre-badge {
+    background: rgba(0,0,0,0.2);
+    color: var(--bg-dark);
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 2rem 0;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+/* Utility */
+.hidden {
+    display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+
+    header h1 {
+        font-size: 1.75rem;
+    }
+
+    .main-genres-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+
+    .main-genre-name {
+        font-size: 1.2rem;
+    }
+
+    .artists-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .artist-tag {
+        padding: 0.5rem 0.875rem;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-genres-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--bg-card-hover);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
